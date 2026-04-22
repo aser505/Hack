@@ -126,6 +126,15 @@
     const timerBox = document.getElementById('timer-box');
     const statusMsg = document.getElementById('status-msg');
 
+    // تفعيل الكيبورد لمرحلة تخمين الأرقام
+    window.addEventListener('keydown', (e) => {
+        if (currentStage === 2 && !isProcessing) {
+            if (e.key >= '0' && e.key <= '9') {
+                pressNum(e.key);
+            }
+        }
+    });
+
     window.onload = () => { timerBox.innerText = "7.0s"; createGrid(); };
 
     function createGrid() {
@@ -142,10 +151,7 @@
         clearInterval(timerInterval);
         statusMsg.innerText = "SUCCESS!";
         statusMsg.style.color = "#00ff41";
-        
-        setTimeout(() => {
-            document.getElementById('success-overlay').classList.remove('hidden');
-        }, 1000);
+        setTimeout(() => { document.getElementById('success-overlay').classList.remove('hidden'); }, 1000);
     }
 
     function goToNextStage() {
@@ -161,12 +167,10 @@
         document.getElementById('restart-btn').classList.add('hidden');
         document.getElementById('success-title').innerText = "HACK SUCCESS!";
         document.getElementById('success-text').innerText = "STAGE COMPLETE";
-
         currentStage = 1; activeTiles = []; userChoices = []; currentGuess = "";
         timerStarted = false; level = 1; pattern = []; isProcessing = false;
         statusMsg.innerText = "READY"; statusMsg.style.color = "#00ff41";
         timerBox.innerText = "7.0s"; 
-        
         document.getElementById('s1-container').classList.remove('hidden');
         document.getElementById('s2-container').classList.add('hidden');
         document.getElementById('s3-container').classList.add('hidden');
