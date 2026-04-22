@@ -78,9 +78,10 @@
     </div>
 
     <div id="success-overlay" class="hidden">
-        <h1 style="color:#00ff41">HACK SUCCESS!</h1>
+        <h1 id="success-title" style="color:#00ff41">HACK SUCCESS!</h1>
         <p id="success-text" style="color:#fff">STAGE COMPLETE</p>
         <button id="next-btn" class="action-btn" style="width:auto; padding: 10px 40px;" onclick="goToNextStage()">NEXT STAGE</button>
+        <button id="restart-btn" class="action-btn hidden" style="width:auto; padding: 10px 40px;" onclick="resetToStageOne()">PLAY AGAIN</button>
     </div>
 
     <div id="s1-container">
@@ -136,14 +137,12 @@
         }
     }
 
-    // --- OVERLAY LOGIC WITH 1 SECOND DELAY ---
     function showSuccess() {
         isProcessing = true;
         clearInterval(timerInterval);
         statusMsg.innerText = "SUCCESS!";
         statusMsg.style.color = "#00ff41";
         
-        // التعديل: تأخير ظهور الإشعار لمدة ثانية واحدة
         setTimeout(() => {
             document.getElementById('success-overlay').classList.remove('hidden');
         }, 1000);
@@ -159,11 +158,15 @@
         document.getElementById('fail-overlay').classList.add('hidden');
         document.getElementById('success-overlay').classList.add('hidden');
         document.getElementById('next-btn').classList.remove('hidden');
+        document.getElementById('restart-btn').classList.add('hidden');
+        document.getElementById('success-title').innerText = "HACK SUCCESS!";
         document.getElementById('success-text').innerText = "STAGE COMPLETE";
+
         currentStage = 1; activeTiles = []; userChoices = []; currentGuess = "";
         timerStarted = false; level = 1; pattern = []; isProcessing = false;
         statusMsg.innerText = "READY"; statusMsg.style.color = "#00ff41";
         timerBox.innerText = "7.0s"; 
+        
         document.getElementById('s1-container').classList.remove('hidden');
         document.getElementById('s2-container').classList.add('hidden');
         document.getElementById('s3-container').classList.add('hidden');
@@ -176,7 +179,6 @@
         document.getElementById('s3-progress').classList.add('hidden');
     }
 
-    // --- STAGE 1 ---
     function startS1() {
         document.getElementById('s1-btn').classList.add('hidden');
         document.getElementById('grid-board').classList.remove('disabled');
@@ -202,7 +204,6 @@
         } else { document.getElementById(`tile-${i}`).classList.add('wrong'); failGame(); }
     }
 
-    // --- STAGE 2 ---
     function initS2() {
         currentStage = 2; timerStarted = false; isProcessing = false;
         document.getElementById('s1-container').classList.add('hidden');
@@ -229,7 +230,6 @@
         }
     }
 
-    // --- STAGE 3 ---
     function initS3() {
         currentStage = 3; isProcessing = false;
         document.getElementById('s2-container').classList.add('hidden');
@@ -272,10 +272,11 @@
                 if (level === 3) { 
                     clearInterval(timerInterval);
                     statusMsg.innerText = "WINNER! ✅";
-                    // تأخير إشعار الفوز النهائي أيضاً
                     setTimeout(() => {
-                        document.getElementById('success-text').innerText = "ALL SYSTEMS HACKED";
+                        document.getElementById('success-title').innerText = "CONGRATULATIONS!";
+                        document.getElementById('success-text').innerText = "ALL SYSTEMS BREACHED! YOU WIN!";
                         document.getElementById('next-btn').classList.add('hidden');
+                        document.getElementById('restart-btn').classList.remove('hidden');
                         document.getElementById('success-overlay').classList.remove('hidden');
                     }, 1000);
                     isProcessing = true; 
