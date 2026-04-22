@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Easy Hack Game</title>
+    <style>
+        body {
+            background-color: #050505;
+            color: #00ff41;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #game-container {
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            padding: 25px;
+            background: #0a0a0a;
+            border: 2px solid #00ff41;
+            position: relative;
+            min-height: 550px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .hidden { display: none !important; }
+        .disabled { opacity: 0.3; pointer-events: none; }
+        
+        #timer-box { font-size: 2.8rem; color: #ff1f1f; font-weight: bold; margin-bottom: 10px; }
+        #status-msg { height: 35px; margin-bottom: 10px; font-weight: bold; font-size: 1.2rem; text-transform: uppercase; }
+
+        /* Stages Styles */
+        .grid-board { display: grid; gap: 8px; grid-template-columns: repeat(5, 1fr); margin-bottom: 20px; }
+        .tile { aspect-ratio: 1/1; background: #1a1a1a; border: 1px solid #333; border-radius: 4px; }
+        .tile.active { background: #00ff41 !important; }
+        .tile.correct { background: #0088ff; }
+        .tile.wrong { background: #ff0000; }
+
+        .guess-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+        .digit-box { width: 50px; height: 70px; background: #111; border: 2px solid #333; font-size: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+        .match-exact { background: #00c853 !important; color: #000; }
+        .match-exist { background: #ff6d00 !important; color: #000; }
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .num-btn { padding: 18px; background: #111; border: 1px solid #00ff41; color: #00ff41; font-weight: bold; border-radius: 8px; cursor: pointer; }
+
+        .pattern-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 280px; margin: 20px auto; }
+        .node { height: 100px; background: #111; border: 3px solid #333; border-radius: 15px; cursor: pointer; }
+        .node.flash { background: #fff !important; }
+        .node.active { background: #00ff41 !important; }
+
+        .action-btn { width: 100%; padding: 18px; background: #00ff41; color: #000; border: none; font-weight: bold; font-size: 1.2rem; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        
+        #fail-overlay, #success-overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0, 0, 0, 0.95); display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; z-index: 100; 
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="timer-box">0.0s</div>
+    <div id="status-msg">READY</div>
+
+    <div id="fail-overlay" class="hidden">
+        <h1 style="color:red">GAME OVER</h1>
+        <button class="action-btn" style="width:auto; padding: 10px 40px; background:red; color:white" onclick="resetToStageOne()">RESTART</button>
+    </div>
+
+    <div id="success-overlay" class="hidden">
+        <h1 style="color:#00ff41">HACK SUCCESS!</h1>
+        <p id="success-text" style="color:#fff">STAGE COMPLETE</p>
+        <button id="next-btn" class="action-btn" style="width:auto; padding: 10px 40px;" onclick="goToNextStage()">NEXT STAGE</button>
+    </div>
+
+    <div id="s1-container">
+        <h2>MEMORY GAME</h2>
+        <div id="grid-board" class="grid-board disabled"></div>
+        <button id="s1-btn" class="action-btn" onclick="startS1()">START GAME</button>
+    </div>
+
+    <div id="s2-container" class="hidden">
+        <h2>GUESS THE CODE</h2>
+        <div class="guess-row">
+            <div class="digit-box" id="d0"></div><div class="digit-box" id="d1"></div><div class="digit-box" id="d2"></div><div class="digit-box" id="d3"></div>
+        </div>
+        <div class="numpad">
+            <button class="num-btn" onclick="pressNum('1')">1</button><button class="num-btn" onclick="pressNum('2')">2</button><button class="num-btn" onclick="pressNum('3')">3</button>
+            <button class="num-btn" onclick="pressNum('4')">4</button><button class="num-btn" onclick="pressNum('5')">5</button><button class="num-btn" onclick="pressNum('6')">6</button>
+            <button class="num-btn" onclick="pressNum('7')">7</button><button class="num-btn" onclick="pressNum('8')">8</button><button class="num-btn" onclick="pressNum('9')">9</button>
+            <button class="num-btn" style="grid-column: span 3" onclick="pressNum('0')">0</button>
+        </div>
+    </div>
+
+    <div id="s3-container" class="hidden">
+        <h2>FOLLOW PATTERN</h2>
+        <div id="pattern-grid" class="pattern-grid disabled">
+            <div class="node" id="node-0" onclick="handleNodeClick(0)"></div>
+            <div class="node" id="node-1" onclick="handleNodeClick(1)"></div>
+            <div class="node" id="node-2" onclick="handleNodeClick(2)"></div>
+            <div class="node" id="node-3" onclick="handleNodeClick(3)"></div>
+        </div>
+        <button id="s3-btn" class="action-btn" onclick="startS3()">START LEVEL</button>
+        <div id="s3-progress" class="hidden" style="margin-top: 15px;">LEVEL: <span id="sync-val" style="color: #00ff41;">1 / 3</span></div>
+    </div>
+</div>
+
+<script>
+    let currentStage = 1, timerInterval;
+    let activeTiles = [], userChoices = [], secretCode = "", currentGuess = "", isProcessing = false;
+    let timerStarted = false;
+    let pattern = [], userPattern = [], level = 1;
+    const flashesPerLevel = { 1: 3, 2: 4, 3: 5 };
+
+    const timerBox = document.getElementById('timer-box');
+    const statusMsg = document.getElementById('status-msg');
+
+    window.onload = () => { timerBox.innerText = "7.0s"; createGrid(); };
+
+    function createGrid() {
+        const board = document.getElementById('grid-board');
+        board.innerHTML = '';
+        for(let i=0; i<25; i++) {
+            let t = document.createElement('div'); t.className='tile'; t.id = `tile-${i}`;
+            t.onclick = () => handleTileClick(i); board.appendChild(t);
+        }
+    }
+
+    // --- OVERLAY LOGIC WITH 1 SECOND DELAY ---
+    function showSuccess() {
+        isProcessing = true;
+        clearInterval(timerInterval);
+        statusMsg.innerText = "SUCCESS!";
+        statusMsg.style.color = "#00ff41";
+        
+        // التعديل: تأخير ظهور الإشعار لمدة ثانية واحدة
+        setTimeout(() => {
+            document.getElementById('success-overlay').classList.remove('hidden');
+        }, 1000);
+    }
+
+    function goToNextStage() {
+        document.getElementById('success-overlay').classList.add('hidden');
+        if (currentStage === 1) initS2();
+        else if (currentStage === 2) initS3();
+    }
+
+    function resetToStageOne() {
+        document.getElementById('fail-overlay').classList.add('hidden');
+        document.getElementById('success-overlay').classList.add('hidden');
+        document.getElementById('next-btn').classList.remove('hidden');
+        document.getElementById('success-text').innerText = "STAGE COMPLETE";
+        currentStage = 1; activeTiles = []; userChoices = []; currentGuess = "";
+        timerStarted = false; level = 1; pattern = []; isProcessing = false;
+        statusMsg.innerText = "READY"; statusMsg.style.color = "#00ff41";
+        timerBox.innerText = "7.0s"; 
+        document.getElementById('s1-container').classList.remove('hidden');
+        document.getElementById('s2-container').classList.add('hidden');
+        document.getElementById('s3-container').classList.add('hidden');
+        document.getElementById('s1-btn').classList.remove('hidden');
+        document.getElementById('grid-board').classList.add('disabled');
+        createGrid();
+        for(let i=0; i<4; i++) { let b = document.getElementById(`d${i}`); b.innerText = ""; b.className = "digit-box"; }
+        document.getElementById('s3-btn').classList.remove('hidden');
+        document.getElementById('pattern-grid').classList.add('disabled');
+        document.getElementById('s3-progress').classList.add('hidden');
+    }
+
+    // --- STAGE 1 ---
+    function startS1() {
+        document.getElementById('s1-btn').classList.add('hidden');
+        document.getElementById('grid-board').classList.remove('disabled');
+        activeTiles = []; 
+        while(activeTiles.length < 8) { let r = Math.floor(Math.random()*25); if(!activeTiles.includes(r)) activeTiles.push(r); }
+        activeTiles.forEach(idx => document.getElementById(`tile-${idx}`).classList.add('active'));
+        statusMsg.innerText = "MEMORIZE!";
+        setTimeout(() => {
+            activeTiles.forEach(idx => document.getElementById(`tile-${idx}`).classList.remove('active'));
+            statusMsg.innerText = "FIND THEM!";
+            startTimer(7.0);
+        }, 1500);
+    }
+
+    function handleTileClick(i) {
+        if(statusMsg.innerText !== "FIND THEM!" || isProcessing) return;
+        if(activeTiles.includes(i)) {
+            if(!userChoices.includes(i)) {
+                userChoices.push(i);
+                document.getElementById(`tile-${i}`).classList.add('correct');
+                if(userChoices.length === activeTiles.length) { showSuccess(); }
+            }
+        } else { document.getElementById(`tile-${i}`).classList.add('wrong'); failGame(); }
+    }
+
+    // --- STAGE 2 ---
+    function initS2() {
+        currentStage = 2; timerStarted = false; isProcessing = false;
+        document.getElementById('s1-container').classList.add('hidden');
+        document.getElementById('s2-container').classList.remove('hidden');
+        secretCode = Math.floor(Math.random()*10000).toString().padStart(4, '0');
+        statusMsg.innerText = "TYPE THE CODE"; timerBox.innerText = "20.0s"; statusMsg.style.color = "#00ff41";
+    }
+
+    function pressNum(n) {
+        if(isProcessing || currentStage !== 2) return;
+        if(!timerStarted) { timerStarted = true; startTimer(20.0); }
+        if(currentGuess.length < 4) {
+            currentGuess += n;
+            for(let i=0; i<4; i++) document.getElementById(`d${i}`).innerText = currentGuess[i] || "";
+            if(currentGuess.length === 4) {
+                isProcessing = true;
+                let sArr = secretCode.split(''), gArr = currentGuess.split(''), exact = 0;
+                let boxes = [document.getElementById('d0'),document.getElementById('d1'),document.getElementById('d2'),document.getElementById('d3')];
+                for(let i=0; i<4; i++) if(gArr[i] === sArr[i]) { boxes[i].classList.add('match-exact'); sArr[i]=null; gArr[i]='X'; exact++; }
+                for(let i=0; i<4; i++) if(gArr[i]!=='X' && sArr.includes(gArr[i])) { boxes[i].classList.add('match-exist'); sArr[sArr.indexOf(gArr[i])]=null; }
+                if(exact === 4) { showSuccess(); }
+                else { setTimeout(() => { currentGuess=""; boxes.forEach(b=>{b.innerText=""; b.className="digit-box";}); isProcessing=false; }, 800); }
+            }
+        }
+    }
+
+    // --- STAGE 3 ---
+    function initS3() {
+        currentStage = 3; isProcessing = false;
+        document.getElementById('s2-container').classList.add('hidden');
+        document.getElementById('s3-container').classList.remove('hidden');
+        statusMsg.innerText = "LEVEL 3 READY"; timerBox.innerText = "20.0s"; statusMsg.style.color = "#00ff41";
+    }
+
+    function startS3() {
+        document.getElementById('s3-btn').classList.add('hidden');
+        document.getElementById('pattern-grid').classList.remove('disabled');
+        document.getElementById('s3-progress').classList.remove('hidden');
+        startTimer(20.0); nextPatternLevel();
+    }
+
+    function nextPatternLevel() {
+        isProcessing = true; userPattern = []; pattern = [];
+        let count = flashesPerLevel[level];
+        for(let i=0; i<count; i++) pattern.push(Math.floor(Math.random() * 4));
+        document.getElementById('sync-val').innerText = `${level} / 3`;
+        statusMsg.innerText = "WATCH..."; playPattern();
+    }
+
+    async function playPattern() {
+        await new Promise(r => setTimeout(r, 600));
+        for (let nodeId of pattern) {
+            const node = document.getElementById(`node-${nodeId}`);
+            node.classList.add('flash'); await new Promise(r => setTimeout(r, 500));
+            node.classList.remove('flash'); await new Promise(r => setTimeout(r, 300));
+        }
+        statusMsg.innerText = "REPEAT IT!"; isProcessing = false;
+    }
+
+    function handleNodeClick(id) {
+        if (isProcessing || currentStage !== 3) return;
+        const node = document.getElementById(`node-${id}`);
+        node.classList.add('active'); setTimeout(() => node.classList.remove('active'), 200);
+        if (id === pattern[userPattern.length]) {
+            userPattern.push(id);
+            if (userPattern.length === pattern.length) {
+                if (level === 3) { 
+                    clearInterval(timerInterval);
+                    statusMsg.innerText = "WINNER! ✅";
+                    // تأخير إشعار الفوز النهائي أيضاً
+                    setTimeout(() => {
+                        document.getElementById('success-text').innerText = "ALL SYSTEMS HACKED";
+                        document.getElementById('next-btn').classList.add('hidden');
+                        document.getElementById('success-overlay').classList.remove('hidden');
+                    }, 1000);
+                    isProcessing = true; 
+                }
+                else { level++; isProcessing = true; setTimeout(nextPatternLevel, 1000); }
+            }
+        } else { failGame(); }
+    }
+
+    function startTimer(s) {
+        clearInterval(timerInterval);
+        let time = s;
+        timerInterval = setInterval(() => {
+            time -= 0.1; timerBox.innerText = Math.max(0, time).toFixed(1) + "s";
+            if(time <= 0) failGame();
+        }, 100);
+    }
+
+    function failGame() {
+        isProcessing = true; clearInterval(timerInterval);
+        statusMsg.innerText = "FAILED!"; statusMsg.style.color = "red";
+        setTimeout(() => { document.getElementById('fail-overlay').classList.remove('hidden'); }, 500);
+    }
+</script>
+</body>
+</html>
