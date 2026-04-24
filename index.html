@@ -71,15 +71,16 @@
     <div id="status-msg">READY</div>
 
     <div id="fail-overlay" class="hidden">
-        <h1 id="fail-title" style="color:red">GAME OVER</h1>
+        <h1 style="color:red">MISSION FAILED</h1>
         <p id="fail-msg" style="color:#fff; margin-bottom: 20px; font-weight: bold; font-size: 0.9rem;"></p>
-        <button class="action-btn" style="width:auto; padding: 10px 40px; background:red; color:white" onclick="resetToStageOne()">RETRY MISSION</button>
+        <button class="action-btn" style="width:auto; padding: 10px 40px; background:red; color:white" onclick="resetToStageOne()">INITIALIZE NEW ATTEMPT</button>
     </div>
 
     <div id="success-overlay" class="hidden">
-        <h1 id="success-title" style="color:#00ff41">SUCCESS!</h1>
-        <button id="next-btn" class="action-btn" style="width:auto; padding: 10px 40px;" onclick="goToNextStage()">NEXT STAGE</button>
-        <button id="restart-btn" class="action-btn hidden" style="width:auto; padding: 10px 40px;" onclick="resetToStageOne()">PLAY AGAIN</button>
+        <h1 id="success-title" style="color:#00ff41">STAGE CLEAR</h1>
+        <p id="success-desc" style="color:#fff; margin-bottom: 10px;"></p>
+        <button id="next-btn" class="action-btn" style="width:auto; padding: 10px 40px;" onclick="goToNextStage()">PROCEED TO NEXT STAGE</button>
+        <button id="restart-btn" class="action-btn hidden" style="width:auto; padding: 10px 40px;" onclick="resetToStageOne()">RE-ENTER THE MATRIX</button>
     </div>
 
     <div id="s1-container">
@@ -111,14 +112,12 @@
     <div id="s4-container" class="hidden">
         <h2>FINAL LOCK</h2>
         <p style="font-size: 1.1rem; color: #00ff41; margin-bottom: 5px; font-weight: bold; letter-spacing: 2px;">SYNC BALLS TO ARCS</p>
-        
         <div id="lock-wrapper" class="is-waiting">
             <div id="lock-area">
                 <div id="l1-arcs" class="layer l-size-1"></div><div id="l2-arcs" class="layer l-size-2"></div><div id="l3-arcs" class="layer l-size-3"></div><div id="l4-arcs" class="layer l-size-4"></div>
                 <div id="dot-layer-1" class="layer l-size-1"></div><div id="dot-layer-2" class="layer l-size-2"></div><div id="dot-layer-3" class="layer l-size-3"></div><div id="dot-layer-4" class="layer l-size-4"></div>
             </div>
         </div>
-
         <div id="s4-ui-elements">
             <div style="display:flex; gap:10px;">
                 <button id="s4-left" class="action-btn secondary-btn" onclick="rotateLayerS4(-1)">LEFT</button>
@@ -133,16 +132,14 @@
 <script>
     let currentStage = 1, timerInterval;
     let activeTiles = [], userChoices = [], secretCode = "", currentGuess = "", isProcessing = false;
-    let timerStarted = false;
-    let pattern = [], userPattern = [], level = 1;
+    let timerStarted = false, level = 1;
     let currentLayer = 1, currentSteps = { 1: 0, 2: 0, 3: 0, 4: 0 };
     const coreColors = ['#03a9f4', '#ffc107', '#ff0000']; 
-    const flashesPerLevel = { 1: 3, 2: 4, 3: 5 };
 
     const timerBox = document.getElementById('timer-box');
     const statusMsg = document.getElementById('status-msg');
 
-    window.onload = () => { timerBox.innerText = "7.0s"; createGrid(); createNumpad(); };
+    window.onload = () => { createGrid(); createNumpad(); };
 
     function createGrid() {
         const board = document.getElementById('grid-board');
@@ -167,7 +164,27 @@
     function showSuccess() {
         isProcessing = true; clearInterval(timerInterval);
         statusMsg.innerText = "SUCCESS!";
-        setTimeout(() => { document.getElementById('success-overlay').classList.remove('hidden'); }, 800);
+        
+        const overlay = document.getElementById('success-overlay');
+        const title = document.getElementById('success-title');
+        const desc = document.getElementById('success-desc');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+
+        if (currentStage === 4) {
+            title.innerText = "SYSTEM FULLY BREACHED";
+            title.style.color = "#00ff41";
+            desc.innerText = "WELCOME, MASTER HACKER. ALL DATA ACCESSIBLE.";
+            nextBtn.classList.add('hidden');
+            restartBtn.classList.remove('hidden');
+        } else {
+            title.innerText = "STAGE CLEAR";
+            desc.innerText = "SECURITY LAYER BYPASSED.";
+            nextBtn.classList.remove('hidden');
+            restartBtn.classList.add('hidden');
+        }
+        
+        setTimeout(() => { overlay.classList.remove('hidden'); }, 800);
     }
 
     function goToNextStage() {
@@ -179,6 +196,7 @@
 
     function resetToStageOne() { location.reload(); }
 
+    // Logics
     function startS1() {
         document.getElementById('s1-btn').classList.add('hidden');
         document.getElementById('grid-board').classList.remove('disabled');
@@ -206,12 +224,11 @@
         document.getElementById('s1-container').classList.add('hidden');
         document.getElementById('s2-container').classList.remove('hidden');
         secretCode = Math.floor(Math.random()*10000).toString().padStart(4, '0');
-        statusMsg.innerText = "GUESS CODE"; timerBox.innerText = "20.0s";
+        statusMsg.innerText = "GUESS CODE"; startTimer(20.0, true); 
     }
 
     function pressNum(n) {
         if(isProcessing || currentStage !== 2) return;
-        if(!timerStarted) { timerStarted = true; startTimer(20.0); }
         if(currentGuess.length < 4) {
             currentGuess += n;
             for(let i=0; i<4; i++) document.getElementById(`d${i}`).innerText = currentGuess[i] || "";
@@ -243,15 +260,14 @@
 
     function nextPatternLevel() {
         isProcessing = true; userPattern = []; pattern = [];
-        let count = flashesPerLevel[level];
+        let count = [3, 4, 5][level-1];
         for(let i=0; i<count; i++) pattern.push(Math.floor(Math.random() * 4));
         document.getElementById('sync-val').innerText = `${level} / 3`;
         playPattern();
     }
 
     async function playPattern() {
-        statusMsg.innerText = "WATCH...";
-        await new Promise(r => setTimeout(r, 600));
+        statusMsg.innerText = "WATCH..."; await new Promise(r => setTimeout(r, 600));
         for (let nodeId of pattern) {
             const node = document.getElementById(`node-${nodeId}`);
             node.classList.add('flash'); await new Promise(r => setTimeout(r, 500));
@@ -273,47 +289,38 @@
         } else failGame();
     }
 
-    // --- S4 LOGIC ---
     function initS4() {
         currentStage = 4; isProcessing = false;
         document.getElementById('s3-container').classList.add('hidden');
         document.getElementById('s4-container').classList.remove('hidden');
-        setupLockS4(); 
-        timerBox.innerText = "15.0s";
+        setupLockS4(); timerBox.innerText = "15.0s";
     }
 
     function activateS4() {
         document.getElementById('lock-wrapper').classList.remove('is-waiting');
+        document.getElementById('s4-left').classList.remove('disabled');
+        document.getElementById('s4-right').classList.remove('disabled');
         document.getElementById('s4-init-btn').classList.add('hidden');
         document.getElementById('s4-confirm-btn').classList.remove('hidden');
         startTimer(15.0);
-    }
-
-    function getLayerPatternS4(l) {
-        if (l === 1) return [coreColors[0], coreColors[1], coreColors[2], coreColors[1]];
-        if (l === 2) return [coreColors[2], coreColors[0], coreColors[1], coreColors[0], coreColors[2]];
-        if (l === 3) return [coreColors[0], coreColors[0], coreColors[1], coreColors[2], coreColors[1], coreColors[2]];
-        if (l === 4) return [coreColors[2], coreColors[1], coreColors[2], coreColors[0], coreColors[0], coreColors[1]];
     }
 
     function setupLockS4() {
         for (let l = 1; l <= 4; l++) {
             const arcContainer = document.getElementById(`l${l}-arcs`);
             const dotContainer = document.getElementById(`dot-layer-${l}`);
-            const pattern = getLayerPatternS4(l);
-            const dotCount = pattern.length;
-            const angleStep = 360 / dotCount;
+            const pattern = (l===1)?[coreColors[0],coreColors[1],coreColors[2],coreColors[1]]:(l===2)?[coreColors[2],coreColors[0],coreColors[1],coreColors[0],coreColors[2]]:(l===3)?[coreColors[0],coreColors[0],coreColors[1],coreColors[2],coreColors[1],coreColors[2]]:[coreColors[2],coreColors[1],coreColors[2],coreColors[0],coreColors[0],coreColors[1]];
             arcContainer.innerHTML = ''; dotContainer.innerHTML = '';
             pattern.forEach((color, i) => {
-                const currentAngle = i * angleStep;
+                const currentAngle = i * (360/pattern.length);
                 const arc = document.createElement('div'); arc.className = 'arc';
                 arc.style.transform = `rotate(${currentAngle}deg)`; arc.style.borderTopColor = color;
-                if (i < pattern.length - 1 && pattern[i] === pattern[i+1]) { arc.classList.add('arc-wide'); arc.style.borderRightColor = color; }
+                if (i < pattern.length-1 && pattern[i] === pattern[i+1]) { arc.classList.add('arc-wide'); arc.style.borderRightColor = color; }
                 arcContainer.appendChild(arc);
                 const dot = document.createElement('div'); dot.className = 'dot'; dot.style.background = color;
                 const rad = (currentAngle - 90) * (Math.PI / 180);
-                const x = 50 + (Math.cos(rad) * 50); const y = 50 + (Math.sin(rad) * 50);
-                dot.style.left = x + '%'; dot.style.top = y + '%'; dotContainer.appendChild(dot);
+                dot.style.left = (50+(Math.cos(rad)*50))+'%'; dot.style.top = (50+(Math.sin(rad)*50))+'%';
+                dotContainer.appendChild(dot);
             });
             currentSteps[l] = Math.floor(Math.random() * (pattern.length - 1)) + 1;
         }
@@ -322,38 +329,34 @@
 
     function rotateLayerS4(dir) {
         if (isProcessing || document.getElementById('lock-wrapper').classList.contains('is-waiting')) return;
-        const count = getLayerPatternS4(currentLayer).length;
+        const patterns = [[4],[5],[6],[6]]; // Lengths
+        const count = patterns[currentLayer-1];
         currentSteps[currentLayer] = (currentSteps[currentLayer] + dir + count) % count;
         updateVisualsS4();
     }
 
     function updateVisualsS4() {
+        const steps = [90, 72, 60, 60];
         for (let l = 1; l <= 4; l++) {
             const el = document.getElementById(`dot-layer-${l}`);
-            const angleStep = 360 / getLayerPatternS4(l).length;
-            el.style.transform = `translate(-50%, -50%) rotate(${currentSteps[l] * angleStep}deg)`;
+            el.style.transform = `translate(-50%, -50%) rotate(${currentSteps[l] * steps[l-1]}deg)`;
             el.style.boxShadow = (l === currentLayer && !document.getElementById('lock-wrapper').classList.contains('is-waiting')) ? "0 0 15px #00ff41" : "none";
         }
     }
 
     function checkUnlock4() {
         if (isProcessing) return;
-        const pattern = getLayerPatternS4(currentLayer);
-        const step = currentSteps[currentLayer];
-        const rotated = [];
-        for (let i = 0; i < pattern.length; i++) { rotated.push(pattern[(i - step + pattern.length) % pattern.length]); }
-        let isCorrect = true;
-        for (let i = 0; i < pattern.length; i++) { if (rotated[i] !== pattern[i]) { isCorrect = false; break; } }
-        if (isCorrect) {
+        if (currentSteps[currentLayer] === 0) {
             const arcs = document.getElementById(`l${currentLayer}-arcs`).getElementsByClassName('arc');
             for(let a of arcs) a.classList.add('success-grey');
-            if (currentLayer < 4) { currentLayer++; statusMsg.innerText = `SUCCESS! LAYER ${currentLayer-1} OPEN`; updateVisualsS4(); } 
-            else { clearInterval(timerInterval); showSuccess(); }
+            if (currentLayer < 4) { currentLayer++; statusMsg.innerText = `LAYER ${currentLayer-1} OPEN`; updateVisualsS4(); } 
+            else { showSuccess(); }
         } else failGame();
     }
 
-    function startTimer(s) {
+    function startTimer(s, skipUpdate) {
         clearInterval(timerInterval); let time = s;
+        if(!skipUpdate) timerBox.innerText = time.toFixed(1) + "s";
         timerInterval = setInterval(() => {
             time -= 0.1; timerBox.innerText = Math.max(0, time).toFixed(1) + "s";
             if(time <= 0) failGame();
@@ -363,21 +366,8 @@
     function failGame() {
         isProcessing = true; clearInterval(timerInterval);
         statusMsg.innerText = "FAILED!"; statusMsg.style.color = "red";
-        
-        const s4Msgs = [
-            "SYSTEM BREACH DETECTED!",
-            "ACCESS DENIED!",
-            "CONNECTION LOST!",
-            "HACK FAILED!"
-        ];
-        
-        const failMsgEl = document.getElementById('fail-msg');
-        if (currentStage === 4) {
-            failMsgEl.innerText = s4Msgs[Math.floor(Math.random() * s4Msgs.length)];
-        } else {
-            failMsgEl.innerText = "SECURITY OVERRIDE FAILED.";
-        }
-        
+        const msgs = ["SYSTEM BREACH DETECTED!","ACCESS DENIED!","CONNECTION LOST!","CRITICAL ERROR: HACK FAILED."];
+        document.getElementById('fail-msg').innerText = msgs[Math.floor(Math.random() * msgs.length)];
         setTimeout(() => { document.getElementById('fail-overlay').classList.remove('hidden'); }, 500);
     }
 </script>
