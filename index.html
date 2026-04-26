@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Easy Hack Game</title>
+    <title>Easy Hack Game - Pro Edition</title>
     <style>
         body {
             background-color: #050505;
@@ -20,13 +20,13 @@
 
         #game-container {
             text-align: center;
-            width: 90%;
-            max-width: 400px;
-            padding: 25px;
+            width: 95%;
+            max-width: 450px;
+            padding: 20px;
             background: #0a0a0a;
             border: 2px solid #00ff41;
             position: relative;
-            min-height: 550px;
+            min-height: 650px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -38,42 +38,60 @@
         #timer-box { font-size: 2.8rem; color: #ff1f1f; font-weight: bold; margin-bottom: 10px; }
         #status-msg { height: 35px; margin-bottom: 10px; font-weight: bold; font-size: 1.2rem; text-transform: uppercase; }
 
-        /* Stages Styles */
+        /* Stage 1 */
         .grid-board { display: grid; gap: 8px; grid-template-columns: repeat(5, 1fr); margin-bottom: 20px; }
-        .tile { aspect-ratio: 1/1; background: #1a1a1a; border: 1px solid #333; border-radius: 4px; }
-        .tile.active { background: #00ff41 !important; }
-        .tile.correct { background: #0088ff; }
-        .tile.wrong { background: #ff0000; }
+        .tile-s1 { aspect-ratio: 1/1; background: #1a1a1a; border: 1px solid #333; border-radius: 4px; }
+        .tile-s1.active { background: #00ff41 !important; }
+        .tile-s1.correct { background: #0088ff; }
+        .tile-s1.wrong { background: #ff0000; }
 
+        /* Stage 2 */
         .guess-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
-        .digit-box { width: 50px; height: 70px; background: #111; border: 2px solid #333; font-size: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+        .digit-box { width: 45px; height: 60px; background: #111; border: 2px solid #333; font-size: 1.8rem; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
         .match-exact { background: #00c853 !important; color: #000; }
         .match-exist { background: #ff6d00 !important; color: #000; }
         .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .num-btn { padding: 18px; background: #111; border: 1px solid #00ff41; color: #00ff41; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .num-btn { padding: 15px; background: #111; border: 1px solid #00ff41; color: #00ff41; font-weight: bold; border-radius: 8px; cursor: pointer; }
 
+        /* Stage 3 */
         .pattern-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 280px; margin: 20px auto; }
-        .node { height: 100px; background: #111; border: 3px solid #333; border-radius: 15px; cursor: pointer; }
+        .node { height: 90px; background: #111; border: 3px solid #333; border-radius: 15px; cursor: pointer; }
         .node.flash { background: #fff !important; }
         .node.active { background: #00ff41 !important; }
+
+        /* Stage 4 - Neural Link */
+        .grid-s4 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; margin: 10px auto; background: #111; border: 1px solid #333; width: 330px; height: 330px; position: relative; align-self: center; }
+        .cell-s4 { width: 55px; height: 55px; border: 1px solid rgba(0,255,65,0.05); position: relative; display: flex; justify-content: center; align-items: center; box-sizing: border-box; }
+        .source-mark { position: absolute; top: -10px; width: 12px; height: 12px; background: #00ff41; box-shadow: 0 0 10px #00ff41; z-index: 10; }
+        .target-ui { position: absolute; right: -40px; display: flex; align-items: center; z-index: 5; pointer-events: none; }
+        .target-line { width: 40px; height: 8px; background: #333; transition: 0.3s; }
+        .target-node { width: 35px; height: 35px; background: #222; border: 2px solid #444; transition: 0.3s; }
+        .active-target .target-node { background: #00ff41 !important; box-shadow: 0 0 20px #00ff41; border-color: #fff; }
+        .active-target .target-line { background: #00ff41 !important; }
+        .tile-s4 { width: 100%; height: 100%; cursor: grab; display: flex; justify-content: center; align-items: center; z-index: 2; }
+        .tile-s4 svg { width: 100%; height: 100%; stroke: #333; stroke-width: 14; fill: none; transition: 0.2s; }
+        .tile-s4.powered svg { stroke: #00ff41; filter: drop-shadow(0 0 8px #00ff41); }
+        #inventory { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 10px; background: #080808; border: 1px solid #222; max-height: 140px; overflow-y: auto; }
+        .inv-slot { width: 50px; height: 50px; border: 1px solid #222; display: flex; justify-content: center; align-items: center; position: relative; }
 
         .action-btn { width: 100%; padding: 18px; background: #00ff41; color: #000; border: none; font-weight: bold; font-size: 1.2rem; border-radius: 5px; cursor: pointer; margin-top: 10px; }
         
         #fail-overlay, #success-overlay { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0, 0, 0, 0.95); display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; z-index: 100; 
+            background: rgba(0, 0, 0, 0.98); display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; z-index: 9999; 
         }
     </style>
 </head>
 <body>
 
 <div id="game-container">
-    <div id="timer-box">0.0s</div>
+    <div id="timer-box">7.0s</div>
     <div id="status-msg">READY</div>
 
     <div id="fail-overlay" class="hidden">
         <h1 style="color:red">GAME OVER</h1>
+        <p style="color:#888">SYSTEM LOCKDOWN</p>
         <button class="action-btn" style="width:auto; padding: 10px 40px; background:red; color:white" onclick="resetToStageOne()">RESTART</button>
     </div>
 
@@ -112,76 +130,78 @@
             <div class="node" id="node-3" onclick="handleNodeClick(3)"></div>
         </div>
         <button id="s3-btn" class="action-btn" onclick="startS3()">START LEVEL</button>
-        <div id="s3-progress" class="hidden" style="margin-top: 15px;">LEVEL: <span id="sync-val" style="color: #00ff41;">1 / 3</span></div>
+    </div>
+
+    <div id="s4-container" class="hidden">
+        <h2>NEURAL LINK</h2>
+        <div class="grid-s4" id="grid-s4"></div>
+        <div id="inventory" class="hidden"></div>
+        <button id="s4-btn" class="action-btn" onclick="startS4()">START ROUTING</button>
     </div>
 </div>
 
 <script>
-    let currentStage = 1, timerInterval;
+    let currentStage = 1, timerInterval, timeLeft;
     let activeTiles = [], userChoices = [], secretCode = "", currentGuess = "", isProcessing = false;
-    let timerStarted = false;
-    let pattern = [], userPattern = [], level = 1;
-    const flashesPerLevel = { 1: 3, 2: 4, 3: 5 };
+    let pattern = [], userPattern = [], patternLevel = 1;
+    let dragged = null, originalParent = null, startPos = {x:0, y:0}, endPos = {x:5, y:0}, gameActive = true;
+
+    const pieces = [
+        { id: 'v', p: "M 50 0 L 50 100", io: [0, 2] },
+        { id: 'h', p: "M 0 50 L 100 50", io: [1, 3] },
+        { id: 'tr', p: "M 50 100 L 50 50 L 100 50", io: [2, 1] },
+        { id: 'tl', p: "M 50 100 L 50 50 L 0 50", io: [2, 3] },
+        { id: 'br', p: "M 50 0 L 50 50 L 100 50", io: [0, 1] },
+        { id: 'bl', p: "M 50 0 L 50 50 L 0 50", io: [0, 3] }
+    ];
 
     const timerBox = document.getElementById('timer-box');
     const statusMsg = document.getElementById('status-msg');
 
-    // تفعيل الكيبورد لمرحلة تخمين الأرقام
-    window.addEventListener('keydown', (e) => {
-        if (currentStage === 2 && !isProcessing) {
-            if (e.key >= '0' && e.key <= '9') {
-                pressNum(e.key);
-            }
-        }
-    });
+    window.onload = () => { createS1Grid(); };
 
-    window.onload = () => { timerBox.innerText = "7.0s"; createGrid(); };
-
-    function createGrid() {
+    function createS1Grid() {
         const board = document.getElementById('grid-board');
         board.innerHTML = '';
         for(let i=0; i<25; i++) {
-            let t = document.createElement('div'); t.className='tile'; t.id = `tile-${i}`;
-            t.onclick = () => handleTileClick(i); board.appendChild(t);
+            let t = document.createElement('div'); t.className='tile-s1'; t.id = `tile-${i}`;
+            t.onclick = () => handleS1TileClick(i); board.appendChild(t);
         }
     }
 
-    function showSuccess() {
-        isProcessing = true;
+    function startTimer(s) {
         clearInterval(timerInterval);
-        statusMsg.innerText = "SUCCESS!";
-        statusMsg.style.color = "#00ff41";
-        setTimeout(() => { document.getElementById('success-overlay').classList.remove('hidden'); }, 1000);
+        timeLeft = s;
+        timerInterval = setInterval(() => {
+            timeLeft -= 0.1;
+            timerBox.innerText = Math.max(0, timeLeft).toFixed(1) + "s";
+            if(timeLeft <= 0) failGame();
+        }, 100);
+    }
+
+    function failGame() {
+        isProcessing = true; gameActive = false;
+        clearInterval(timerInterval);
+        statusMsg.innerText = "FAILED!"; statusMsg.style.color = "red";
+        if(dragged) dragged.style.display = 'none';
+        setTimeout(() => { document.getElementById('fail-overlay').classList.remove('hidden'); }, 500);
+    }
+
+    function showSuccess() {
+        isProcessing = true; clearInterval(timerInterval);
+        statusMsg.innerText = "SUCCESS!"; statusMsg.style.color = "#00ff41";
+        setTimeout(() => { document.getElementById('success-overlay').classList.remove('hidden'); }, 800);
     }
 
     function goToNextStage() {
         document.getElementById('success-overlay').classList.add('hidden');
+        isProcessing = false;
         if (currentStage === 1) initS2();
         else if (currentStage === 2) initS3();
+        else if (currentStage === 3) initS4();
     }
 
-    function resetToStageOne() {
-        document.getElementById('fail-overlay').classList.add('hidden');
-        document.getElementById('success-overlay').classList.add('hidden');
-        document.getElementById('next-btn').classList.remove('hidden');
-        document.getElementById('restart-btn').classList.add('hidden');
-        document.getElementById('success-title').innerText = "HACK SUCCESS!";
-        document.getElementById('success-text').innerText = "STAGE COMPLETE";
-        currentStage = 1; activeTiles = []; userChoices = []; currentGuess = "";
-        timerStarted = false; level = 1; pattern = []; isProcessing = false;
-        statusMsg.innerText = "READY"; statusMsg.style.color = "#00ff41";
-        timerBox.innerText = "7.0s"; 
-        document.getElementById('s1-container').classList.remove('hidden');
-        document.getElementById('s2-container').classList.add('hidden');
-        document.getElementById('s3-container').classList.add('hidden');
-        document.getElementById('s1-btn').classList.remove('hidden');
-        document.getElementById('grid-board').classList.add('disabled');
-        createGrid();
-        for(let i=0; i<4; i++) { let b = document.getElementById(`d${i}`); b.innerText = ""; b.className = "digit-box"; }
-        document.getElementById('s3-btn').classList.remove('hidden');
-        document.getElementById('pattern-grid').classList.add('disabled');
-        document.getElementById('s3-progress').classList.add('hidden');
-    }
+    function resetToStageOne() { location.reload(); }
 
     function startS1() {
         document.getElementById('s1-btn').classList.add('hidden');
@@ -197,28 +217,27 @@
         }, 1500);
     }
 
-    function handleTileClick(i) {
+    function handleS1TileClick(i) {
         if(statusMsg.innerText !== "FIND THEM!" || isProcessing) return;
         if(activeTiles.includes(i)) {
             if(!userChoices.includes(i)) {
                 userChoices.push(i);
                 document.getElementById(`tile-${i}`).classList.add('correct');
-                if(userChoices.length === activeTiles.length) { showSuccess(); }
+                if(userChoices.length === activeTiles.length) showSuccess();
             }
         } else { document.getElementById(`tile-${i}`).classList.add('wrong'); failGame(); }
     }
 
     function initS2() {
-        currentStage = 2; timerStarted = false; isProcessing = false;
+        currentStage = 2; secretCode = Math.floor(Math.random()*10000).toString().padStart(4, '0');
         document.getElementById('s1-container').classList.add('hidden');
         document.getElementById('s2-container').classList.remove('hidden');
-        secretCode = Math.floor(Math.random()*10000).toString().padStart(4, '0');
-        statusMsg.innerText = "TYPE THE CODE"; timerBox.innerText = "20.0s"; statusMsg.style.color = "#00ff41";
+        timerBox.innerText = "20.0s"; statusMsg.innerText = "TYPE CODE";
     }
 
     function pressNum(n) {
         if(isProcessing || currentStage !== 2) return;
-        if(!timerStarted) { timerStarted = true; startTimer(20.0); }
+        if(currentGuess === "") startTimer(20.0);
         if(currentGuess.length < 4) {
             currentGuess += n;
             for(let i=0; i<4; i++) document.getElementById(`d${i}`).innerText = currentGuess[i] || "";
@@ -228,31 +247,28 @@
                 let boxes = [document.getElementById('d0'),document.getElementById('d1'),document.getElementById('d2'),document.getElementById('d3')];
                 for(let i=0; i<4; i++) if(gArr[i] === sArr[i]) { boxes[i].classList.add('match-exact'); sArr[i]=null; gArr[i]='X'; exact++; }
                 for(let i=0; i<4; i++) if(gArr[i]!=='X' && sArr.includes(gArr[i])) { boxes[i].classList.add('match-exist'); sArr[sArr.indexOf(gArr[i])]=null; }
-                if(exact === 4) { showSuccess(); }
-                else { setTimeout(() => { currentGuess=""; boxes.forEach(b=>{b.innerText=""; b.className="digit-box";}); isProcessing=false; }, 800); }
+                if(exact === 4) showSuccess();
+                else setTimeout(() => { currentGuess=""; boxes.forEach(b=>{b.innerText=""; b.className="digit-box";}); isProcessing=false; }, 800);
             }
         }
     }
 
     function initS3() {
-        currentStage = 3; isProcessing = false;
-        document.getElementById('s2-container').classList.add('hidden');
+        currentStage = 3; document.getElementById('s2-container').classList.add('hidden');
         document.getElementById('s3-container').classList.remove('hidden');
-        statusMsg.innerText = "LEVEL 3 READY"; timerBox.innerText = "20.0s"; statusMsg.style.color = "#00ff41";
+        timerBox.innerText = "20.0s"; statusMsg.innerText = "READY";
     }
 
     function startS3() {
         document.getElementById('s3-btn').classList.add('hidden');
         document.getElementById('pattern-grid').classList.remove('disabled');
-        document.getElementById('s3-progress').classList.remove('hidden');
         startTimer(20.0); nextPatternLevel();
     }
 
     function nextPatternLevel() {
         isProcessing = true; userPattern = []; pattern = [];
-        let count = flashesPerLevel[level];
+        let count = 2 + patternLevel; 
         for(let i=0; i<count; i++) pattern.push(Math.floor(Math.random() * 4));
-        document.getElementById('sync-val').innerText = `${level} / 3`;
         statusMsg.innerText = "WATCH..."; playPattern();
     }
 
@@ -263,7 +279,7 @@
             node.classList.add('flash'); await new Promise(r => setTimeout(r, 500));
             node.classList.remove('flash'); await new Promise(r => setTimeout(r, 300));
         }
-        statusMsg.innerText = "REPEAT IT!"; isProcessing = false;
+        statusMsg.innerText = "REPEAT!"; isProcessing = false;
     }
 
     function handleNodeClick(id) {
@@ -273,37 +289,133 @@
         if (id === pattern[userPattern.length]) {
             userPattern.push(id);
             if (userPattern.length === pattern.length) {
-                if (level === 3) { 
-                    clearInterval(timerInterval);
-                    statusMsg.innerText = "WINNER! ✅";
-                    setTimeout(() => {
-                        document.getElementById('success-title').innerText = "CONGRATULATIONS!";
-                        document.getElementById('success-text').innerText = "ALL SYSTEMS BREACHED! YOU WIN!";
-                        document.getElementById('next-btn').classList.add('hidden');
-                        document.getElementById('restart-btn').classList.remove('hidden');
-                        document.getElementById('success-overlay').classList.remove('hidden');
-                    }, 1000);
-                    isProcessing = true; 
-                }
-                else { level++; isProcessing = true; setTimeout(nextPatternLevel, 1000); }
+                if (patternLevel === 3) showSuccess();
+                else { patternLevel++; isProcessing = true; setTimeout(nextPatternLevel, 1000); }
             }
-        } else { failGame(); }
+        } else failGame();
     }
 
-    function startTimer(s) {
-        clearInterval(timerInterval);
-        let time = s;
-        timerInterval = setInterval(() => {
-            time -= 0.1; timerBox.innerText = Math.max(0, time).toFixed(1) + "s";
-            if(time <= 0) failGame();
-        }, 100);
+    function initS4() {
+        currentStage = 4; gameActive = true;
+        document.getElementById('s3-container').classList.add('hidden');
+        document.getElementById('s4-container').classList.remove('hidden');
+        // رفع الوقت لـ 80 ثانية
+        timerBox.innerText = "80.0s"; statusMsg.innerText = "WAITING";
+        setupS4Grid();
     }
 
-    function failGame() {
-        isProcessing = true; clearInterval(timerInterval);
-        statusMsg.innerText = "FAILED!"; statusMsg.style.color = "red";
-        setTimeout(() => { document.getElementById('fail-overlay').classList.remove('hidden'); }, 500);
+    function setupS4Grid() {
+        const gridEl = document.getElementById('grid-s4'); gridEl.innerHTML = '';
+        startPos.x = Math.floor(Math.random() * 3); endPos.y = 3 + Math.floor(Math.random() * 3);
+        for (let y = 0; y < 6; y++) {
+            for (let x = 0; x < 6; x++) {
+                const cell = document.createElement('div'); cell.className = 'cell-s4'; cell.dataset.x = x; cell.dataset.y = y;
+                if (x === startPos.x && y === 0) {
+                    const mark = document.createElement('div'); mark.className = 'source-mark'; cell.appendChild(mark);
+                }
+                if (x === 5 && y === endPos.y) {
+                    cell.innerHTML += `<div class="target-ui" id="target-ui"><div class="target-line"></div><div class="target-node"></div></div>`;
+                }
+                cell.ondragover = e => e.preventDefault();
+                cell.ondrop = function() { dropS4Tile(this); };
+                gridEl.appendChild(cell);
+            }
+        }
     }
+
+    function startS4() {
+        document.getElementById('s4-btn').classList.add('hidden');
+        document.getElementById('inventory').classList.remove('hidden');
+        // بدء العداد بـ 80 ثانية
+        startTimer(80.0); generateS4Solution();
+    }
+
+    function generateS4Solution() {
+        const inv = document.getElementById('inventory'); inv.innerHTML = '';
+        let path = [], cx = startPos.x, cy = 0, lastIn = 0, visited = new Set([`${cx},${cy}`]);
+        while (!(cx === 5 && cy === endPos.y)) {
+            let moves = [];
+            if (cy < 5 && !visited.has(`${cx},${cy+1}`)) moves.push({dx:0, dy:1, out:2, nextIn:0});
+            if (cx < 5 && !visited.has(`${cx+1},${cy}`)) moves.push({dx:1, dy:0, out:1, nextIn:3});
+            if (cy > 0 && !visited.has(`${cx},${cy-1}`)) moves.push({dx:0, dy:-1, out:0, nextIn:2});
+            if (moves.length === 0) { return generateS4Solution(); }
+            let m = moves[Math.floor(Math.random() * moves.length)];
+            let p = pieces.find(piece => piece.io.includes(lastIn) && piece.io.includes(m.out));
+            path.push(p.id); cx += m.dx; cy += m.dy; lastIn = m.nextIn; visited.add(`${cx},${cy}`);
+        }
+        path.push(pieces.find(p => p.io.includes(lastIn) && p.io.includes(1)).id);
+        if(path.length < 10) return generateS4Solution();
+        path.sort(() => Math.random() - 0.5).forEach(id => {
+            const d = pieces.find(p => p.id === id);
+            const slot = document.createElement('div'); slot.className = 'inv-slot';
+            const tile = document.createElement('div'); tile.className = 'tile-s4';
+            tile.draggable = true; tile.dataset.io = JSON.stringify(d.io);
+            tile.innerHTML = `<svg viewBox="0 0 100 100"><path d="${d.p}" /></svg>`;
+            tile.ondragstart = function() { if(!gameActive) return; dragged = this; originalParent = this.parentNode; };
+            tile.ontouchstart = function(e) { 
+                if(!gameActive) return; dragged = this; originalParent = this.parentNode;
+                this.style.position='fixed'; this.style.width='60px'; this.style.height='60px'; this.style.zIndex = '2000';
+            };
+            slot.appendChild(tile); inv.appendChild(slot);
+        });
+    }
+
+    function dropS4Tile(cell) {
+        if(!gameActive) return;
+        if (cell.querySelector('.tile-s4')) { originalParent.appendChild(dragged); }
+        else { cell.appendChild(dragged); }
+        updateS4Flow();
+    }
+
+    function updateS4Flow() {
+        document.querySelectorAll('.tile-s4').forEach(t => t.classList.remove('powered'));
+        document.getElementById('target-ui').classList.remove('active-target');
+        let grid = {};
+        document.querySelectorAll('.cell-s4').forEach(c => {
+            let t = c.querySelector('.tile-s4');
+            if(t) grid[`${c.dataset.x},${c.dataset.y}`] = { el: t, io: JSON.parse(t.dataset.io) };
+        });
+        let powered = new Set();
+        function check(x, y, fromDir) {
+            let key = `${x},${y}`;
+            if (!grid[key] || powered.has(grid[key].el)) return;
+            let tile = grid[key];
+            if (tile.io.includes(fromDir)) {
+                powered.add(tile.el); tile.el.classList.add('powered');
+                let out = tile.io.find(d => d !== fromDir);
+                if (out === 0) check(x, parseInt(y)-1, 2);
+                if (out === 1) {
+                    if (x == 5 && y == endPos.y) { document.getElementById('target-ui').classList.add('active-target'); winS4(); }
+                    check(parseInt(x)+1, y, 3);
+                }
+                if (out === 2) check(x, parseInt(y)+1, 0);
+                if (out === 3) check(parseInt(x)-1, y, 1);
+            }
+        }
+        check(startPos.x, 0, 0);
+    }
+
+    function winS4() {
+        gameActive = false; isProcessing = true; clearInterval(timerInterval);
+        setTimeout(() => {
+            document.getElementById('success-title').innerText = "CONGRATULATIONS!";
+            document.getElementById('success-text').innerText = "ALL SYSTEMS BREACHED!";
+            document.getElementById('next-btn').classList.add('hidden');
+            document.getElementById('restart-btn').classList.remove('hidden');
+            document.getElementById('success-overlay').classList.remove('hidden');
+        }, 1000);
+    }
+
+    document.ontouchmove = e => { if(!dragged || !gameActive || currentStage !== 4) return; e.preventDefault(); let t = e.touches[0]; dragged.style.left = (t.clientX - 30) + 'px'; dragged.style.top = (t.clientY - 30) + 'px'; };
+    document.ontouchend = e => {
+        if(!dragged || currentStage !== 4) return;
+        dragged.style.display = 'none';
+        let el = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+        let cell = el?.classList.contains('cell-s4') ? el : el?.closest('.cell-s4');
+        dragged.style.display = 'flex'; dragged.style.position = 'relative'; dragged.style.left = '0'; dragged.style.top = '0'; dragged.style.width = '100%'; dragged.style.height = '100%';
+        if(cell && gameActive) { dropS4Tile(cell); } else { if(originalParent) originalParent.appendChild(dragged); }
+        dragged = null;
+    };
 </script>
 </body>
 </html>
