@@ -299,8 +299,8 @@
         currentStage = 4; gameActive = true;
         document.getElementById('s3-container').classList.add('hidden');
         document.getElementById('s4-container').classList.remove('hidden');
-        // رفع الوقت لـ 80 ثانية
-        timerBox.innerText = "80.0s"; statusMsg.innerText = "WAITING";
+        // تعديل الوقت لـ 60 ثانية
+        timerBox.innerText = "60.0s"; statusMsg.innerText = "WAITING";
         setupS4Grid();
     }
 
@@ -326,8 +326,8 @@
     function startS4() {
         document.getElementById('s4-btn').classList.add('hidden');
         document.getElementById('inventory').classList.remove('hidden');
-        // بدء العداد بـ 80 ثانية
-        startTimer(80.0); generateS4Solution();
+        // بدء العداد بـ 60 ثانية
+        startTimer(60.0); generateS4Solution();
     }
 
     function generateS4Solution() {
