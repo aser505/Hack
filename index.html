@@ -52,7 +52,7 @@
     <div id="fail-overlay" class="hidden">
         <h1 style="color:red">HACK FAILED</h1>
         <p style="color:#888">SYSTEM LOCKDOWN</p>
-        <button class="action-btn" style="width:auto; padding: 10px 40px; background:red; color:white" onclick="resetToStageOne()">RESTART</button>
+        <button id="fail-btn" class="action-btn" style="width:auto; padding: 10px 40px; background:red; color:white" onclick="resetToStageOne()">RESTART</button>
     </div>
 
     <div id="success-overlay" class="hidden">
@@ -117,6 +117,36 @@
 
     const timerBox = document.getElementById('timer-box');
     const statusMsg = document.getElementById('status-msg');
+
+    // --- Keyboard Event Listener ---
+    document.addEventListener('keydown', (e) => {
+        // Enter Key logic
+        if (e.key === 'Enter') {
+            const failOverlay = document.getElementById('fail-overlay');
+            const successOverlay = document.getElementById('success-overlay');
+            
+            if (!failOverlay.classList.contains('hidden')) {
+                resetToStageOne();
+                return;
+            }
+            if (!successOverlay.classList.contains('hidden')) {
+                if (currentStage === 4) resetToStageOne();
+                else goToNextStage();
+                return;
+            }
+
+            if (currentStage === 1 && !document.getElementById('s1-btn').classList.contains('hidden')) startS1();
+            else if (currentStage === 3 && !document.getElementById('s3-btn').classList.contains('hidden')) startS3();
+            else if (currentStage === 4 && !document.getElementById('s4-btn').classList.contains('hidden')) startS4();
+        }
+
+        // Numbers logic for Stage 2
+        if (currentStage === 2 && gameActive && !isProcessing) {
+            if (e.key >= '0' && e.key <= '9') {
+                pressNum(e.key);
+            }
+        }
+    });
 
     window.onload = () => { createS1Grid(); };
 
